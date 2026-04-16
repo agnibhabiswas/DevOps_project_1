@@ -30,6 +30,10 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/devops-app
-            sudo docker stop devops-app || true
-            sudo docker rm devops-app || true
+            
+            # Stop all containers using port (safe cleanup)
+            sudo docker ps -q --filter "name=devops-app" | xargs -r sudo docker stop
+            sudo docker ps -aq --filter "name=devops-app" | xargs -r sudo docker rm
+            
+            # Run fresh container
             sudo docker run -d -p 3001:3001 --name devops-app ${{ secrets.DOCKER_USERNAME }}/devops-app
