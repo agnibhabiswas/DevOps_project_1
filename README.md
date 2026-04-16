@@ -64,84 +64,85 @@ The application is an item management system that allows users to create, view, 
 
 ## Technology Stack
 
-* Backend: Node.js, Express
-* Database: MongoDB (Mongoose)
-* Containerization: Docker
-* CI/CD: GitHub Actions
-* Cloud: AWS EC2
-* Infrastructure as Code: Terraform
+| Layer            | Technology          |
+| ---------------- | ------------------- |
+| Backend          | Node.js, Express    |
+| Database         | MongoDB (Mongoose)  |
+| Containerization | Docker              |
+| CI/CD            | GitHub Actions      |
+| Cloud            | AWS EC2             |
+| Infrastructure   | Terraform           |
 
 ---
 
 ## Key Features
 
-* RESTful API for item management
-* Persistent storage using MongoDB
-* Dockerized application
-* Multi-container architecture
-* Automated CI/CD pipeline
-* Infrastructure provisioning with Terraform
+- RESTful API for item management
+- Persistent storage using MongoDB
+- Dockerized multi-container application
+- Automated CI/CD pipeline (build → push → deploy)
+- Infrastructure provisioning with Terraform
 
 ---
 
 ## API Endpoints
 
-| Method | Endpoint       | Description         |
-| ------ | -------------- | ------------------- |
-| GET    | /api/items     | Retrieve all items  |
-| GET    | /api/items/:id | Retrieve item by ID |
-| POST   | /api/items     | Create a new item   |
-| DELETE | /api/items/:id | Delete an item      |
+| Method | Endpoint         | Description         |
+| ------ | ---------------- | ------------------- |
+| GET    | `/api/items`     | Retrieve all items  |
+| GET    | `/api/items/:id` | Retrieve item by ID |
+| POST   | `/api/items`     | Create a new item   |
+| DELETE | `/api/items/:id` | Delete an item      |
 
 ---
 
 ## Docker Architecture
 
-The system runs as two containers:
+The system runs as two containers connected via a custom Docker network:
 
-* Application container (Node.js)
-* MongoDB container
+| Container    | Image     | Purpose             |
+| ------------ | --------- | ------------------- |
+| `sample_app` | Custom    | Node.js application |
+| `mongo`      | `mongo:6` | MongoDB database    |
 
-Both containers are connected using a custom Docker network.
+**Connection string:**
 
-Connection string:
-
+```
 mongodb://mongo:27017/sample_app
+```
 
 ---
 
 ## CI/CD Pipeline
 
-Implemented using GitHub Actions.
+Implemented using GitHub Actions, triggered on every push to `main`.
 
-### Workflow
+### Workflow Steps
 
-1. Trigger on push to main branch
-2. Checkout code
-3. Authenticate with Docker Hub
-4. Build Docker image
-5. Push image to Docker Hub
-6. SSH into EC2 instance
-7. Pull latest image
-8. Ensure Docker network exists
-9. Ensure MongoDB container is running
-10. Stop and remove old application container
-11. Deploy new container with updated image
+1. Checkout code
+2. Authenticate with Docker Hub
+3. Build Docker image
+4. Push image to Docker Hub
+5. SSH into EC2 instance
+6. Pull latest image
+7. Ensure Docker network exists
+8. Ensure MongoDB container is running
+9. Stop and remove old application container
+10. Deploy new container with updated image
 
 ---
 
 ## AWS Deployment
 
-* Hosted on AWS EC2
-* Docker containers run on the instance
-* Security Group:
+- Hosted on AWS EC2
+- Docker containers run directly on the instance
+- Security Group ports: `22` (SSH), `3001` (Application)
 
-  * Port 22 (SSH)
-  * Port 3001 (Application)
+**Access the application:**
 
-Access:
-
+```
 http://<EC2-PUBLIC-IP>:3001
+```
 
 ---
 
@@ -149,10 +150,10 @@ http://<EC2-PUBLIC-IP>:3001
 
 Terraform is used to:
 
-* Provision EC2 instance
-* Configure security groups
-* Automate Docker setup via user_data
-* Ensure reproducible infrastructure
+- Provision the EC2 instance
+- Configure security groups
+- Automate Docker setup via `user_data`
+- Ensure reproducible infrastructure
 
 ---
 
@@ -160,82 +161,94 @@ Terraform is used to:
 
 ### Application UI
 
-![alt text](image-3.png)
+![Application UI](image-3.png)
 
 ### API Response
 
-![alt text](image-2.png)
+![API Response](image-2.png)
 
 ### CI/CD Pipeline
 
-![alt text](image-1.png)
+![CI/CD Pipeline](image-1.png)
 
 ### EC2 Deployment
 
-![alt text](image.png)
+![EC2 Deployment](image.png)
+
 ---
 
 ## Local Setup
 
-### Clone repository
+### 1. Clone the repository
 
+```bash
 git clone https://github.com/agnibhabiswas/sample_app_devOPs.git
 cd sample_app_devOPs
+```
 
----
+### 2. Start MongoDB
 
-### Run MongoDB
-
+```bash
 docker run -d -p 27017:27017 mongo
+```
 
----
+### 3. Install dependencies and run
 
-### Start application
-
+```bash
 npm install
 npm run dev
+```
 
 ---
 
 ## Run with Docker (Production Style)
 
+```bash
+# Create a shared network
 docker network create my-network
 
-docker run -d --name mongo --network my-network mongo:6
+# Start MongoDB container
+docker run -d \
+  --name mongo \
+  --network my-network \
+  mongo:6
 
-docker run -d -p 3001:3001 
---name sample_app 
---network my-network 
--e MONGO_URI=mongodb://mongo:27017/sample_app  <your-docker-username>/sample_app
+# Start application container
+docker run -d \
+  -p 3001:3001 \
+  --name sample_app \
+  --network my-network \
+  -e MONGO_URI=mongodb://mongo:27017/sample_app \
+  <your-docker-username>/sample_app
+```
 
 ---
 
 ## Key Learnings
 
-* End-to-end CI/CD implementation
-* Docker containerization and networking
-* Multi-container system design
-* AWS EC2 deployment
-* Infrastructure automation using Terraform
-* Debugging real-world issues:
-
-  * Port conflicts
-  * Disk space limitations
-  * Docker image inconsistencies
-  * Inter-container communication issues
+- End-to-end CI/CD implementation
+- Docker containerization and networking
+- Multi-container system design
+- AWS EC2 deployment
+- Infrastructure automation using Terraform
+- Debugging real-world issues:
+  - Port conflicts
+  - Disk space limitations
+  - Docker image inconsistencies
+  - Inter-container communication issues
 
 ---
 
 ## Future Improvements
 
-* Kubernetes deployment (EKS)
-* Monitoring and logging integration
-* Managed database (MongoDB Atlas)
-* Authentication and authorization
-* Auto-scaling infrastructure
+- Kubernetes deployment (EKS)
+- Monitoring and logging integration
+- Managed database (MongoDB Atlas)
+- Authentication and authorization
+- Auto-scaling infrastructure
 
 ---
 
 ## Author
 
-Agnibha Biswas
+**Agnibha Biswas**
